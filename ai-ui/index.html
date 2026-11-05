@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'none';">
+    <title>AI 工作台</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app">
+        <header class="topbar">
+            <div class="brand">
+                <div class="logo" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+                        <path d="M12 3l1.7 4.3L18 9l-4.3 1.7L12 15l-1.7-4.3L6 9l4.3-1.7L12 3z"
+                              fill="currentColor"/>
+                        <path d="M5 15l.9 2.1L8 18l-2.1.9L5 21l-.9-2.1L2 18l2.1-.9L5 15z"
+                              fill="currentColor" opacity=".7"/>
+                    </svg>
+                </div>
+                <div class="brand-copy">
+                    <h1>AI 工作台</h1>
+                    <span id="modelBadge" class="model-badge">未配置模型</span>
+                </div>
+            </div>
+            <div class="top-actions">
+                <button id="newChatBtn" class="btn ghost" type="button" title="清空当前对话">
+                    <span class="plus">+</span> 新对话
+                </button>
+                <button id="settingsBtn" class="btn ghost" type="button">
+                    <span class="gear">⚙</span> 设置
+                </button>
+            </div>
+        </header>
+
+        <main id="chatScroll" class="chat-scroll">
+            <div id="messages" class="messages" aria-live="polite"></div>
+
+            <section id="emptyState" class="empty-state">
+                <div class="empty-orbit" aria-hidden="true">
+                    <div class="orbit-ring"></div>
+                    <div class="orbit-core">
+                        <svg viewBox="0 0 24 24" width="34" height="34" fill="none">
+                            <path d="M12 3l1.9 4.8L19 10l-5.1 2.2L12 17l-1.9-4.8L5 10l5.1-2.2L12 3z"
+                                  fill="currentColor"/>
+                        </svg>
+                    </div>
+                </div>
+                <h2>开始一段新对话</h2>
+                <p>接入任意 OpenAI 兼容接口，支持 DeepSeek、OpenAI、Ollama<br>Markdown 流式输出，代码、表格、公式都能显示。</p>
+                <button id="emptySettingsBtn" class="btn primary" type="button">配置 API 开始使用</button>
+                <span class="empty-tip">API Key 只保存在本机，不会上传到其他地方</span>
+            </section>
+        </main>
+
+        <footer class="composer-wrap">
+            <div class="composer-card">
+                <textarea id="input" rows="1" maxlength="32000"
+                          placeholder="给 AI 发送消息…"
+                          aria-label="消息输入框"></textarea>
+                <div class="composer-bottom">
+                    <span class="composer-hint">Enter 发送 · Shift + Enter 换行</span>
+                    <div class="composer-buttons">
+                        <button id="stopBtn" class="btn danger hidden" type="button">停止生成</button>
+                        <button id="sendBtn" class="btn primary send-btn" type="button" disabled>
+                            发送 <kbd>↵</kbd>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="disclaimer">AI 生成内容可能不准确，请自行核实重要信息。</div>
+        </footer>
+    </div>
+
+    <div id="settingsModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+        <div class="modal-card">
+            <div class="modal-head">
+                <div>
+                    <h2 id="settingsTitle">API 设置</h2>
+                    <p>支持任何 OpenAI 兼容的 Chat Completions 接口。</p>
+                </div>
+                <button id="closeSettingsBtn" class="icon-btn" type="button" aria-label="关闭设置">×</button>
+            </div>
+
+            <div class="preset-row">
+                <span>快速填充</span>
+                <button type="button" class="preset" data-preset="deepseek">DeepSeek</button>
+                <button type="button" class="preset" data-preset="openai">OpenAI</button>
+                <button type="button" class="preset" data-preset="ollama">Ollama</button>
+            </div>
+
+            <label class="field">
+                <span class="field-label">API 地址 <small>Base URL，通常以 /v1 结尾</small></span>
+                <input id="baseUrl" type="url" spellcheck="false" autocomplete="off"
+                       placeholder="https://api.deepseek.com/v1">
+            </label>
+
+            <label class="field">
+                <span class="field-label">API Key <small>本机加密保存；Ollama 可以留空</small></span>
+                <div class="key-row">
+                    <input id="apiKey" type="password" spellcheck="false" autocomplete="new-password"
+                           placeholder="sk-...">
+                    <button id="toggleKey" class="btn ghost small" type="button">显示</button>
+                </div>
+            </label>
+
+            <label class="field">
+                <span class="field-label">模型名称 <small>例如 deepseek-chat、gpt-4o-mini</small></span>
+                <input id="model" type="text" spellcheck="false" autocomplete="off"
+                       placeholder="deepseek-chat">
+            </label>
+
+            <div id="settingsError" class="form-error hidden"></div>
+            <div class="modal-note">
+                接口请求由本程序直接发送，不经过第三方服务器。API Key 使用 Windows 当前用户凭据加密保存。
+            </div>
+
+            <div class="modal-actions">
+                <button id="cancelSettingsBtn" class="btn ghost" type="button">取消</button>
+                <button id="saveSettingsBtn" class="btn primary" type="button">保存设置</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast hidden" role="status"></div>
+
+    <script src="marked.min.js"></script>
+    <script src="purify.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

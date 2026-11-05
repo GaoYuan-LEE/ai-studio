@@ -1,0 +1,34 @@
+# Build outputs
+AI聊天.exe
+*.exe
+*.dll
+*.pdb
+*.cache
+bin/
+obj/
+.vs/
+*.user
+
+# WebView2 SDK / runtime (downloaded by build script)
+Microsoft.Web.WebView2.*.dll
+WebView2Loader.dll
+*.nupkg
+
+# Local secrets and settings
+settings.json
+secrets.json
+.env
+.env.*
+*.key
+*.pem
+*.secret
+
+# Local application data
+WebView2Data/
+AIWorkbench/
+
+# OS / editor
+Thumbs.db
+desktop.ini
+.DS_Store
+.idea/
